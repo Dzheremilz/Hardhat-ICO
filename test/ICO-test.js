@@ -65,6 +65,7 @@ describe('ICO', function () {
       await ethers.provider.send('evm_increaseTime', [60 * 60 * 24 * 14]);
       await ethers.provider.send('evm_mine');
       expect(await ico.connect(ownerIco).withdraw()).to.changeEtherBalance(ownerIco, 110 * gwei);
+      expect(await ico.total()).to.equal(0);
     });
     it('Should emit a Withdrew event', async function () {
       await ethers.provider.send('evm_increaseTime', [60 * 60 * 24 * 14]);
