@@ -56,13 +56,10 @@ contract ICO is Ownable {
     function _buyTokens(address sender, uint256 amount) private {
         require(block.timestamp < _dateEnd, "ICO: 2 weeks have passed, you can no longer buy token");
         //edge case start: prople send eth before approve or all approve token are sold
-        require(
-            _token.allowance(_token.owner(), address(this)) > 0,
-            "ICO: has not been approved yet or all token are already sold"
-        );
+        uint256 allowance = _token.allowance(_token.owner(), address(this));
+        require(allowance > 0, "ICO: has not been approved yet or all token are already sold");
         // require(_token.balanceOf(_token.owner()) > 0, "ICO: there is no more token to buy"); => transferFrom got this check
         uint256 token = conversion(amount);
-        uint256 allowance = _token.allowance(_token.owner(), address(this));
         //edge case end: last token
         if (token > allowance) {
             uint256 rest = token - allowance;
