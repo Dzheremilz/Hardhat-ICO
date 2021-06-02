@@ -17,6 +17,7 @@ contract ICO is Ownable {
 
     constructor(address tokenAddress) {
         _token = IToken(tokenAddress);
+        require(_token.balanceOf(_token.owner()) == 1000000 * 10**18, "ICO: owner must have token to exchange");
         _dateEnd = block.timestamp + 2 * 1 weeks;
     }
 
@@ -24,8 +25,7 @@ contract ICO is Ownable {
         _buyTokens(msg.sender, msg.value);
     }
 
-    function withdraw() public {
-        require(msg.sender == owner(), "ICO: only owner can withdraw");
+    function withdraw() public onlyOwner {
         require(block.timestamp >= _dateEnd, "ICO: you need to wait 2 weeks from the deployment of this contract");
         uint256 gain = address(this).balance;
         payable(msg.sender).sendValue(address(this).balance);
@@ -48,9 +48,27 @@ contract ICO is Ownable {
         return address(this).balance;
     }
 
+    function timeLeft() public view returns (uint256) {
+        require(block.timestamp < _dateEnd, "ICO: there is no time left");
+        return _dateEnd - block.timestamp;
+    }
+
     function _buyTokens(address sender, uint256 amount) private {
         require(block.timestamp < _dateEnd, "ICO: 2 weeks have passed, you can no longer buy token");
+        //edge case start: prople send eth before approve or all approve token are sold
+        require(
+            _token.allowance(_token.owner(), address(this)) > 0,
+            "ICO: has not been approved yet or all token are already sold"
+        );
+        // require(_token.balanceOf(_token.owner()) > 0, "ICO: there is no more token to buy"); => transferFrom got this check
         uint256 token = conversion(amount);
+        uint256 allowance = _token.allowance(_token.owner(), address(this));
+        //edge case end: last token
+        if (token > allowance) {
+            uint256 rest = token - allowance;
+            token -= rest;
+            payable(sender).sendValue(rest / 10**9);
+        }
         _token.transferFrom(_token.owner(), sender, token);
         emit Bought(sender, amount);
     }
