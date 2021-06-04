@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 
 describe('Calculator', () => {
-  let dev, ownerToken, ownerCalculator, alice, Token, token, Calculator, calculator;
+  let dev, ownerToken, ownerCalculator, alice, Token, token, Calculator, calculator, Test, test;
 
   beforeEach(async () => {
     [dev, ownerToken, ownerCalculator, alice] = await ethers.getSigners();
@@ -124,14 +124,30 @@ describe('Calculator', () => {
       await expect(calculator.mod(-2, 3)).to.emit(calculator, 'Calculated').withArgs('Modulus', dev.address, -2, 3, -2);
     });
   });
-  /* how to get return value from transaction hash
+  // how to get return value from transaction hash
   describe('Test', function () {
     it('TEST ADD', async function () {
-      const tx = await calculator.add(2, 3);
-      await ethers.provider.send('evm_increaseTime', [10]);
-      await ethers.provider.send('evm_mine');
-      expect(tx).to.equal(5);
+      Test = await ethers.getContractFactory('Test');
+      test = await Test.deploy(calculator.address, token.address);
+      await test.deployed();
+      await token.connect(ownerToken).transfer(test.address, ethers.utils.parseEther('4'));
+      await test.approveCalc(calculator.address, ethers.utils.parseEther('4'));
+      await test.test(3, 4);
+      // await ethers.provider.send('evm_mine');
+      expect(await test.result()).to.equal(7);
+    });
+    // test for changeTokenBalance
+    it('changeTokenBalance', async function () {
+      const tx = token.connect(ownerToken).transfer(alice.address, 200);
+      expect(() => tx).to.changeTokenBalance(token, alice, 200);
+    });
+    // changeTokenBalance with calculator function
+    it('Calc: changeTokenBalance', async function () {
+      await token.connect(ownerToken).transfer(alice.address, ethers.utils.parseEther('1'));
+      await token.connect(alice).approve(calculator.address, ethers.utils.parseEther('1'));
+      const tx2 = calculator.connect(alice).add(3, 5);
+      await expect(() => tx2).to.changeTokenBalance(token, alice, ethers.utils.parseEther('-1'));
+      expect(tx2).to.emit(calculator, 'Calculated').withArgs('Addition', alice.address, 3, 5, 8);
     });
   });
-  */
 });
