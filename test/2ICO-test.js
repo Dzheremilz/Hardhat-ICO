@@ -46,7 +46,7 @@ describe('ICO', function () {
       expect(tx).to.changeEtherBalance(henri, -gwei);
     });
     it('Should emit a Bought event', async function () {
-      await expect(await ico.connect(henri).buyTokens({ value: gwei }))
+      await expect(ico.connect(henri).buyTokens({ value: gwei }))
         .to.emit(ico, 'Bought')
         .withArgs(henri.address, gwei);
     });
@@ -106,7 +106,7 @@ describe('ICO', function () {
     it('Should emit a Withdrew event', async function () {
       await ethers.provider.send('evm_increaseTime', [60 * 60 * 24 * 14]);
       await ethers.provider.send('evm_mine');
-      await expect(await ico.connect(ownerIco).withdraw())
+      await expect(ico.connect(ownerIco).withdraw())
         .to.emit(ico, 'Withdrew')
         .withArgs(ownerIco.address, 110 * gwei);
     });
